@@ -1,80 +1,85 @@
-from treelib import Tree,Node
+# coding=utf-8
+from treelib import Tree, Node
 from terminaltables import AsciiTable
 import numpy as np
 
 
-def direct_product(*args:iter):
-	res=list()
+def direct_product(*args: iter):
+	res = list()
 	for arg in args:
 		if res:
-			r=list()
+			r = list()
 			for i in arg:
 				for rs in res:
-					r.append([i,*rs])
-			res=r
+					r.append([i, *rs])
+			res = r
 		else:
 			for i in arg:
 				res.append([i])
 	return res
 
-def pool(matrix:np.ndarray,a,b,c,d):
-	return set(range(1,10))-set(matrix[:,:,c,d].reshape(-1))-set(matrix[a,b,:,:].reshape(-1))-set(matrix[a,:,c,:].reshape(-1))
+
+def pool(matrix: np.ndarray, a, b, c, d):
+	return set(range(1, 10)) - set(matrix[:, :, c, d].reshape(-1)) - set(matrix[a, b, :, :].reshape(-1)) - set(
+		matrix[a, :, c, :].reshape(-1))
+
 
 class Sudoku:
-	def __init__(self,holes=0):
-		self.data=np.zeros((3,3,3,3),dtype='int')
-		
-		I=set(range(1,10))
-		element=range(3)
-		order=direct_product(element,element,element,element)
-		
-		i=0
-		genTree=Tree()
-		root=Node(i,'root',data=[order[0],self.data.copy()])
+	def __init__(self, holes=0):
+		self.data = np.zeros((3, 3, 3, 3), dtype='int')
+
+		I = set(range(1, 10))
+		element = range(3)
+		order = direct_product(element, element, element, element)
+
+		i = 0
+		genTree = Tree()
+		root = Node(i, 'root', data=[order[0], self.data.copy()])
 		genTree.add_node(root)
-		currentNode=root
-		getData=lambda node:node.data[1][tuple(node.data[0])]
-		while i<len(order):
-			i+=1
-			a,b,c,d=order[i-1]
-			numPool=pool(self.data,a,b,c,d)-set(map(getData,genTree.children(currentNode.identifier)))
+		currentNode = root
+		getData = lambda node: node.data[1][tuple(node.data[0])]
+		while i < len(order):
+			i += 1
+			a, b, c, d = order[i - 1]
+			numPool = pool(self.data, a, b, c, d) - set(map(getData, genTree.children(currentNode.identifier)))
 			if numPool:
-				self.data[a,b,c,d]=np.random.choice(list(numPool))
-				node=Node(i,data=[order[i-1],self.data.copy()])
-				genTree.add_node(node,currentNode)
-				currentNode=node
+				self.data[a, b, c, d] = np.random.choice(list(numPool))
+				node = Node(i, data=[order[i - 1], self.data.copy()])
+				genTree.add_node(node, currentNode)
+				currentNode = node
 			else:
-				prev=genTree.parent(currentNode.identifier)
-				while len(genTree.children(prev.identifier))==len(pool(prev.data[1],*(prev.data[0]))):
-					currentNode=prev
-					prev=genTree.parent(currentNode.identifier)
+				prev = genTree.parent(currentNode.identifier)
+				while len(genTree.children(prev.identifier)) == len(pool(prev.data[1], *(prev.data[0]))):
+					currentNode = prev
+					prev = genTree.parent(currentNode.identifier)
 				else:
-					currentNode=prev
-					self.data=currentNode.data[1].copy()
-					i=currentNode.tag
+					currentNode = prev
+					self.data = currentNode.data[1].copy()
+					i = currentNode.tag
 				continue
-		
-		h=np.random.choice(len(order),size=holes,replace=False)
-		self._answer=self.data.copy()
-		self.holes=np.array(order)[h]
-		self.data[tuple(self.holes.T.tolist())]=0
-	
+
+		h = np.random.choice(len(order), size=holes, replace=False)
+		self._answer = self.data.copy()
+		self.holes = np.array(order)[h]
+		self.data[tuple(self.holes.T.tolist())] = 0
+
 	def __str__(self):
-		data=np.array(self.data.reshape((9,9)),dtype='str')
-		data[data=='0']=' '
-		table=AsciiTable(data.tolist())
-		table.inner_row_border=True
+		data = np.array(self.data.reshape((9, 9)), dtype='str')
+		data[data == '0'] = ' '
+		table = AsciiTable(data.tolist())
+		table.inner_row_border = True
 		return table.table
-	
+
 	def answer(self):
-		data=np.array(self._answer.reshape((9,9)),dtype='str')
-		data[data=='0']=' '
-		table=AsciiTable(data.tolist())
-		table.inner_row_border=True
+		data = np.array(self._answer.reshape((9, 9)), dtype='str')
+		data[data == '0'] = ' '
+		table = AsciiTable(data.tolist())
+		table.inner_row_border = True
 		print(table.table)
 		return self._answer
 
-if __name__=='__main__':
-	s=Sudoku(holes=60)
+
+if __name__ == '__main__':
+	s = Sudoku(holes=60)
 	print(s)
 	s.answer()
