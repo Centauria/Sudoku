@@ -1,2 +1,4 @@
-treelib==1.5.5
-terminaltables==3.1.0
+treelib
+terminaltables
+numpy
+tensorflow
