@@ -5,6 +5,11 @@ import numpy as np
 
 
 def direct_product(*args: iter):
+	"""
+	Calculates direct product of 2 or more iterables.
+	:param args: must be iterables, total count varies
+	:return: list of all possible combinations of the elements in given iterables
+	"""
 	res = list()
 	for arg in args:
 		if res:
@@ -19,16 +24,37 @@ def direct_product(*args: iter):
 	return res
 
 
-def pool(matrix: np.ndarray, a, b, c, d):
-	return set(range(1, 10)) - set(matrix[:, :, c, d].reshape(-1)) - set(matrix[a, b, :, :].reshape(-1)) - set(
-		matrix[a, :, c, :].reshape(-1))
+def pool(matrix: np.ndarray, a, b, c, d, total=None):
+	"""
+	When sudoku square contains elements in total, calculates all possible entries in the position [a,b,c,d]
+	:param matrix: the Sudoku data matrix in 4 dims, (3,3,3,3)
+	:param a: 1st dimension
+	:param b: 2nd dimension
+	:param c: 3rd dimension
+	:param d: 4th dimension
+	:param total: the complete set of possible elements, typically {1,2,3,4,5,6,7,8,9} in Sudoku
+	:return: set of possible elements in position [a,b,c,d]
+	"""
+	if total is None:
+		total = set(range(1, 10))
+	value = matrix[a, b, c, d]
+	matrix[a, b, c, d] = 0
+	result = total \
+			 - set(matrix[:, :, c, d].reshape(-1)) \
+			 - set(matrix[a, b, :, :].reshape(-1)) \
+			 - set(matrix[a, :, c, :].reshape(-1))
+	matrix[a, b, c, d] = value
+	return result
 
 
 class Sudoku:
+	"""
+	Define sudoku puzzles
+	"""
+
 	def __init__(self, holes=0):
 		self.data = np.zeros((3, 3, 3, 3), dtype='int')
 
-		I = set(range(1, 10))
 		element = range(3)
 		order = direct_product(element, element, element, element)
 
